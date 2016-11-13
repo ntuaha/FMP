@@ -50,12 +50,23 @@ def fbm_user(fbmid):
   return jsonify(q)
     
 
+def getFBMUserInfo(user_id):
+  token = os.environ.get('AHA_FB_PAGE_ACCESS_TOKEN')
+  href =  "https://graph.facebook.com/v2.6/%s?fields=first_name,last_name,profile_pic,locale,timezone,gender&access_token=%s"%(user_id,token)
+  r = requests.get(href).json()
+  return r
+
+
+
 @app.route('/user/fbm',methods=['POST'])
 def fbm_user_insert():
   data = req.get_json()
-  print(data)
   db = get_db()
   q = db.query("select uid from fb_users where fbmid = '%s'"%data['fbmid']).dictresult()
+  r = getFBMUserInfo(data['fbmid'])
+  data['fbmimgurl'] = r['profile_pic']
+  data['gender'] = r['gender'].strip()
+  data['fbname'] = "%s %s"%(r['last_name'],r['first_name'])
   if len(q) == 0 :    
     return jsonify(db.insert('fb_users',data))
   elif len(q) == 1 :

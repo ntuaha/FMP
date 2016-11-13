@@ -10,7 +10,8 @@ create table FB_USERS(
   FBToken varchar,
   PushNewsFlag boolean,
   FBImgUrl varchar,
-  FBMImgUrl varchar
+  FBMImgUrl varchar,
+  gender char(10)
 );
 create index FBID_INDEX on FB_USERS(FBID);
 create index FBMID_INDEX on FB_USERS(FBMID);
