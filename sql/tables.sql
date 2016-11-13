@@ -36,3 +36,13 @@ create table FBM_TXN(
   Info json
 );
 create index FBMTXN_ID_INDEX on FBM_TXN(FBMID);
+
+-- FBM_NEWS_TXN
+drop table FBM_NEWS_TXN;
+create table FBM_NEWS_TXN(
+  TXN_ID bigserial,
+  FBMID varchar,
+  NEWSID varchar,
+  CreatedTime timestamp not null
+);
+create index FBM_NEWS_TXN_ID_INDEX on FBM_NEWS_TXN(FBMID);
