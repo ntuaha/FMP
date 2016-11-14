@@ -43,6 +43,21 @@ def list():
   data["data"] = q
   return jsonify(data)
 
+@app.route('/msg/fbm/list', methods=['GET'])
+def fbm_msg():
+  db = get_db()
+  q = db.query("select * from fbm_txn order by createdtime desc limit 10").dictresult()
+  return jsonify({"count":len(q),"data":q})
+
+@app.route('/msg/fbm', methods=['POST'])
+def fbm_msg_insert():
+  db = get_db()
+  print (req.get_json())
+  return jsonify(db.insert('fbm_txn',req.get_json()))
+
+
+
+
 @app.route('/user/fbm/<fbmid>', methods=['GET','POST'])
 def fbm_user(fbmid):
   db = get_db()
