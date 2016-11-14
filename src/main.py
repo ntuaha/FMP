@@ -50,16 +50,17 @@ def fbm_user(fbmid):
   if req.method == "GET":
     return jsonify(q)
   elif req.method == "POST":    
-    data = req.get_json()
-    r = getFBMUserInfo(fbmid)
+    data = req.get_json()    
     try:
       data['fbmid'] = fbmid
+    except KeyError:
+      return jsonify([])
+    if len(q) == 0 :
+      r = getFBMUserInfo(fbmid)
       data['fbmimgurl'] = r['profile_pic']
       data['gender'] = r['gender'].strip()
       data['fbname'] = "%s %s"%(r['last_name'],r['first_name'])
-    except KeyError:
-      return jsonify([])
-    if len(q) == 0 :    
+    
       return jsonify(db.insert('fb_users',data))
     elif len(q) == 1 :
       data["uid"] = q[0]["uid"]
