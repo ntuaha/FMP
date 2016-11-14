@@ -56,7 +56,14 @@ def fbm_msg_insert():
   return jsonify(db.insert('fbm_txn',req.get_json()))
 
 
-
+@app.route('/user/<int:uid>', methods=['GET'])
+def user(uid):
+  db = get_db()
+  q = db.query("select * from fb_users where uid = %d"%uid).dictresult()
+  if len(q) == 1:
+    return jsonify(q[0])
+  else:
+    return jsonify({})
 
 @app.route('/user/fbm/<fbmid>', methods=['GET','POST'])
 def fbm_user(fbmid):
