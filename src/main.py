@@ -10,8 +10,8 @@ import os
 PG_INFO = {}
 PG_INFO["user"] = os.environ.get('AHA_PG_USER')
 PG_INFO["passowrd"] = os.environ.get('AHA_PG_PWD') 
-PG_INFO["ip"] = os.environ.get('AHA_PG_IP') 
-PG_INFO["port"] = os.environ.get('AHA_PG_PORT')  
+PG_INFO["ip"] = os.environ.get('AHA_PG_IP')
+PG_INFO["port"] = os.environ.get('AHA_PG_PORT')
 
 app = Flask(__name__)
 
@@ -47,15 +47,18 @@ def list():
 def fbm_user(fbmid):
   db = get_db()
   q = db.query("select * from fb_users where fbmid = '%s'"%fbmid).dictresult()
-
   if req.method == "GET":
     return jsonify(q)
   elif req.method == "POST":    
     data = req.get_json()
     r = getFBMUserInfo(fbmid)
-    data['fbmimgurl'] = r['profile_pic']
-    data['gender'] = r['gender'].strip()
-    data['fbname'] = "%s %s"%(r['last_name'],r['first_name'])
+    try:
+      data['fbmid'] = fbmid
+      data['fbmimgurl'] = r['profile_pic']
+      data['gender'] = r['gender'].strip()
+      data['fbname'] = "%s %s"%(r['last_name'],r['first_name'])
+    except KeyError:
+      return jsonify([])
     if len(q) == 0 :    
       return jsonify(db.insert('fb_users',data))
     elif len(q) == 1 :
@@ -71,5 +74,6 @@ def getFBMUserInfo(user_id):
   r = requests.get(href).json()
   return r
 
+
 if __name__ == "__main__":
-    app.run(debug=True)
+  app.run(debug=True)
