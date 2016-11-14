@@ -8,7 +8,7 @@ create table FB_USERS(
   FBName varchar,
   RealName varchar,
   FBToken varchar,
-  PushNewsFlag boolean,
+  PushNewsFlag boolean default false,
   FBImgUrl varchar,
   FBMImgUrl varchar,
   gender char(10)

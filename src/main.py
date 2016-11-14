@@ -43,11 +43,26 @@ def list():
   data["data"] = q
   return jsonify(data)
 
-@app.route('/user/fbm/<fbmid>', methods=['GET'])
+@app.route('/user/fbm/<fbmid>', methods=['GET','POST'])
 def fbm_user(fbmid):
   db = get_db()
   q = db.query("select * from fb_users where fbmid = '%s'"%fbmid).dictresult()
-  return jsonify(q)
+
+  if req.method == "GET":
+    return jsonify(q)
+  elif req.method == "POST":    
+    data = req.get_json()
+    r = getFBMUserInfo(fbmid)
+    data['fbmimgurl'] = r['profile_pic']
+    data['gender'] = r['gender'].strip()
+    data['fbname'] = "%s %s"%(r['last_name'],r['first_name'])
+    if len(q) == 0 :    
+      return jsonify(db.insert('fb_users',data))
+    elif len(q) == 1 :
+      data["uid"] = q[0]["uid"]
+      return jsonify(db.update('fb_users',data))
+  # 如果都沒有輸出的話      
+  return jsonify([])
     
 
 def getFBMUserInfo(user_id):
@@ -55,28 +70,6 @@ def getFBMUserInfo(user_id):
   href =  "https://graph.facebook.com/v2.6/%s?fields=first_name,last_name,profile_pic,locale,timezone,gender&access_token=%s"%(user_id,token)
   r = requests.get(href).json()
   return r
-
-
-
-@app.route('/user/fbm',methods=['POST'])
-def fbm_user_insert():
-  data = req.get_json()
-  db = get_db()
-  q = db.query("select uid from fb_users where fbmid = '%s'"%data['fbmid']).dictresult()
-  r = getFBMUserInfo(data['fbmid'])
-  data['fbmimgurl'] = r['profile_pic']
-  data['gender'] = r['gender'].strip()
-  data['fbname'] = "%s %s"%(r['last_name'],r['first_name'])
-  if len(q) == 0 :    
-    return jsonify(db.insert('fb_users',data))
-  elif len(q) == 1 :
-    data["uid"] = q[0]["uid"]
-    return jsonify(db.update('fb_users',data))
-    
-
-
-
-
 
 if __name__ == "__main__":
     app.run(debug=True)
