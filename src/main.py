@@ -7,6 +7,8 @@ from flask import jsonify # 提供json 回應的方法
 from pg import DB
 import os
 
+from NEWS import NEWS
+
 PG_INFO = {}
 PG_INFO["user"] = os.environ.get('AHA_PG_USER')
 PG_INFO["passowrd"] = os.environ.get('AHA_PG_PWD') 
@@ -96,6 +98,21 @@ def getFBMUserInfo(user_id):
   href =  "https://graph.facebook.com/v2.6/%s?fields=first_name,last_name,profile_pic,locale,timezone,gender&access_token=%s"%(user_id,token)
   r = requests.get(href).json()
   return r
+
+@app.route('/news/fbm/all', methods=['POST'])
+def sendNews():
+  token = os.environ.get('AHA_FB_PAGE_ACCESS_TOKEN')
+  db = get_db()
+  q = db.query("select fbmid from fb_users where pushnewsflag = true").dictresult()
+  NEWS(db).sendNews(token,[d["fbmid"] for d in q])
+  return jsonify({"status":200})
+
+@app.route('/news/fbm/<int:fbmid>', methods=['POST'])
+def sendNews2PPL(fbmid):  
+  NEWS(get_db()).sendNews(os.environ.get('AHA_FB_PAGE_ACCESS_TOKEN'),[str(fbmid)])
+  return jsonify({"status":200})
+
+  
 
 
 if __name__ == "__main__":
