@@ -9,6 +9,10 @@ import os
 
 from NEWS import NEWS
 
+with open('secret_token.json','r') as f:
+  secret_token = f.readlines()[0].replace("\n","")
+
+
 PG_INFO = {}
 PG_INFO["user"] = os.environ.get('AHA_PG_USER')
 PG_INFO["passowrd"] = os.environ.get('AHA_PG_PWD') 
@@ -81,11 +85,13 @@ def fbm_user(fbmid):
       return jsonify([])
     if len(q) == 0 :
       r = getFBMUserInfo(fbmid)
-      data['fbmimgurl'] = r['profile_pic']
-      data['gender'] = r['gender'].strip()
-      data['fbname'] = "%s %s"%(r['last_name'],r['first_name'])
-    
-      return jsonify(db.insert('fb_users',data))
+      try:        
+        data['fbmimgurl'] = r['profile_pic']
+        data['gender'] = r['gender'].strip()
+        data['fbname'] = "%s %s"%(r['last_name'],r['first_name'])    
+        return jsonify(db.insert('fb_users',data))
+      except:
+        return jsonify(db.insert('fb_users',data))
     elif len(q) == 1 :
       data["uid"] = q[0]["uid"]
       return jsonify(db.update('fb_users',data))
@@ -94,23 +100,39 @@ def fbm_user(fbmid):
     
 
 def getFBMUserInfo(user_id):
-  token = os.environ.get('AHA_FB_PAGE_ACCESS_TOKEN')
-  href =  "https://graph.facebook.com/v2.6/%s?fields=first_name,last_name,profile_pic,locale,timezone,gender&access_token=%s"%(user_id,token)
-  r = requests.get(href).json()
-  return r
+  try:
+    token = os.environ.get('AHA_FB_PAGE_ACCESS_TOKEN')
+    href =  "https://graph.facebook.com/v2.6/%s?fields=first_name,last_name,profile_pic,locale,timezone,gender&access_token=%s"%(user_id,token)
+    r = requests.get(href).json()
+    return r
+  except:
+    href =  "https://graph.facebook.com/v2.6/%s?fields=first_name,last_name,profile_pic,locale,timezone,gender&access_token=%s"%(user_id,secret_token)
+    r = requests.get(href).json()
+    return r
 
 @app.route('/news/fbm/all', methods=['POST'])
 def sendNews():
-  token = os.environ.get('AHA_FB_PAGE_ACCESS_TOKEN')
-  db = get_db()
-  q = db.query("select fbmid from fb_users where pushnewsflag = true").dictresult()
-  NEWS(db).sendNews(token,[d["fbmid"] for d in q])
-  return jsonify({"status":200})
+  try:
+    token = os.environ.get('AHA_FB_PAGE_ACCESS_TOKEN')
+    db = get_db()
+    q = db.query("select fbmid from fb_users where pushnewsflag = true").dictresult()
+    NEWS(db).sendNews(token,[d["fbmid"] for d in q])
+    return jsonify({"status":200})
+  except:
+    db = get_db()
+    q = db.query("select fbmid from fb_users where pushnewsflag = true").dictresult()
+    NEWS(db).sendNews(secret_token,[d["fbmid"] for d in q])
+    return jsonify({"status":200})
 
 @app.route('/news/fbm/<int:fbmid>', methods=['POST'])
 def sendNews2PPL(fbmid):  
-  NEWS(get_db()).sendNews(os.environ.get('AHA_FB_PAGE_ACCESS_TOKEN'),[str(fbmid)])
-  return jsonify({"status":200})
+  try:
+    NEWS(get_db()).sendNews(os.environ.get('AHA_FB_PAGE_ACCESS_TOKEN'),[str(fbmid)])
+    return jsonify({"status":200})
+  except:
+    NEWS(get_db()).sendNews(secret_token,[str(fbmid)])
+    return jsonify({"status":200})
+  
 
   
 
