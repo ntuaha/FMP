@@ -9,18 +9,21 @@ class NEWS:
     self.channel = "fbm"
     self.db = db
 
+  #得到新聞連結
   def getNewsUrl(self,fbmid):
     today = datetime.datetime.now().strftime("%Y-%m-%d")
     yesterday = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
     return "http://52.42.108.66:5000/api/v1/list?startdate=%s&enddate=%s&type=json&channel=%s&id=%s"%(yesterday,today,self.channel,fbmid)
 
+  #得到中介跳轉新聞連結
   def getRedirectNewsLink(self,fbmid,original_link,news_no):
     return "http://ntuaha.github.io/AI_SCRIPT/line.html?target="+quote(original_link)+"&info="+quote("http://52.42.108.66:5000/api/v1/contexts?no="+news_no+"&id="+fbmid+"&type=json&channel="+self.channel)
   
+  #亂丟一個facebook MID
   def getNews(self):
     return requests.get(self.getNewsUrl('1234567')).json()
   
-
+  #組合Facebook Messenger 應有的資訊
   def getFBMmsg(self,fbmid,data):
     msg = {}
     msg['recipient'] = {"id":fbmid}
@@ -52,8 +55,10 @@ if __name__ == "__main__":
   PG_INFO["port"] = os.environ.get('AHA_PG_PORT')
   db = DB(dbname='esb', host=PG_INFO["ip"], port=int(PG_INFO["port"]),user=PG_INFO["user"], passwd=PG_INFO["passowrd"])
   news = NEWS(db)  
-  q = db.query("select fbmid from fb_users where pushnewsflag = true").dictresult()
-  fbmids = [d["fbmid"] for d in q]
+  #q = db.query("select fbmid from fb_users where pushnewsflag = true").dictresult()
+  #fbmids = [d["fbmid"] for d in q]
+  # Cheng-Yu Lin
+  fbmids = ['704548156314710']
   news.sendNews(token,fbmids)
   db.close()
 

@@ -9,7 +9,7 @@ import os
 
 from NEWS import NEWS
 
-with open('secret_token.json','r') as f:
+with open('secret_token.txt','r') as f:
   secret_token = f.readlines()[0].replace("\n","")
 
 
